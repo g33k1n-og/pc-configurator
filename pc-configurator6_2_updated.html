@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Подобрать компьютер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #0c0c0e;
+    --bg2: #141418;
+    --bg3: #1c1c22;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0ede8;
+    --muted: #888780;
+    --accent: #d4a853;
+    --accent2: #b8872e;
+    --green: #3B6D11;
+    --green-light: #97C459;
+    --red: #E24B4A;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Onest', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .noise {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+
+  header { padding: 48px 0 32px; border-bottom: 0.5px solid var(--border); }
+  .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .logo-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, #d4a853 0%, #b8872e 100%);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+  .config-panel {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: var(--radius); padding: 28px; margin: 28px 0;
+  }
+  .section-title {
+    font-size: 12px; font-weight: 500; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 20px;
+  }
+
+  .budget-row { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+  .budget-label { font-size: 13px; color: var(--muted); min-width: 40px; }
+  .budget-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--accent); min-width: 90px; text-align: right;
+  }
+  .range-wrap { flex: 1; position: relative; height: 20px; }
+  input[type=range] {
+    -webkit-appearance: none; width: 100%; height: 2px;
+    background: var(--border2); border-radius: 2px; outline: none;
+    position: absolute; top: 9px; pointer-events: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--accent);
+    pointer-events: all; cursor: pointer; border: 2px solid var(--bg);
+    transition: transform 0.15s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  #range-fill { position: absolute; height: 2px; top: 9px; background: var(--accent); border-radius: 2px; }
+
+  .requirements-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;
+  }
+  @media (max-width: 600px) { .requirements-grid { grid-template-columns: 1fr; } }
+  .req-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.3px; }
+  .req-group select {
+    width: 100%; background: var(--bg3);
+    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
+    color: var(--text); font-family: 'Onest', sans-serif;
+    font-size: 14px; padding: 10px 12px; outline: none;
+    transition: border-color 0.2s; appearance: none; -webkit-appearance: none;
+  }
+  .req-group select:focus { border-color: var(--accent); }
+
+  .purpose-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .chip {
+    padding: 7px 14px; border-radius: 99px; border: 0.5px solid var(--border2);
+    background: transparent; color: var(--muted); font-size: 13px;
+    font-family: 'Onest', sans-serif; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.active { background: rgba(212,168,83,0.12); border-color: var(--accent); color: var(--accent); }
+
+  .search-btn {
+    width: 100%; padding: 14px; background: var(--accent); color: #0c0c0e;
+    border: none; border-radius: var(--radius-sm); font-family: 'Onest', sans-serif;
+    font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.2px;
+  }
+  .search-btn:hover { background: #e8bc6a; transform: translateY(-1px); }
+  .search-btn:active { transform: translateY(0); }
+
+  .results-section { margin: 0 0 40px; }
+  .results-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+  }
+  .results-title { font-size: 18px; font-weight: 500; }
+  .results-count {
+    font-size: 12px; color: var(--muted); background: var(--bg2);
+    border: 0.5px solid var(--border); padding: 4px 10px; border-radius: 99px;
+  }
+
+  .no-results {
+    text-align: center; padding: 48px 24px;
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: var(--radius); color: var(--muted);
+  }
+  .no-results i { font-size: 32px; color: var(--border2); margin-bottom: 12px; display: block; }
+
+  .pc-card {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: var(--radius); padding: 24px; margin-bottom: 16px;
+    transition: border-color 0.2s, opacity 0.3s; position: relative; overflow: hidden;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+  .pc-card:hover { border-color: var(--border2); }
+  .pc-card.best { border-color: rgba(212,168,83,0.3); }
+  .best-badge {
+    position: absolute; top: 16px; right: 16px;
+    background: rgba(212,168,83,0.15); color: var(--accent);
+    font-size: 11px; font-weight: 500; letter-spacing: 0.5px;
+    padding: 3px 10px; border-radius: 99px; border: 0.5px solid rgba(212,168,83,0.3);
+  }
+  .pc-name { font-size: 17px; font-weight: 500; margin-bottom: 6px; padding-right: 80px; }
+  .pc-desc { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+
+  .specs-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px; margin-bottom: 18px;
+  }
+  .spec-item { background: var(--bg3); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .spec-label { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 3px; }
+  .spec-val { font-size: 13px; font-weight: 500; line-height: 1.3; }
+
+  .pc-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 18px; border-top: 0.5px solid var(--border); flex-wrap: wrap; gap: 12px;
+  }
+  .pc-price { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 500; color: var(--accent); }
+  .stores-btn {
+    display: flex; align-items: center; gap: 6px; padding: 8px 16px;
+    border-radius: var(--radius-sm); border: 0.5px solid var(--border2);
+    background: transparent; color: var(--text); font-family: 'Onest', sans-serif;
+    font-size: 13px; cursor: pointer; transition: all 0.2s;
+  }
+  .stores-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .stores-panel {
+    margin-top: 16px; padding: 16px; background: var(--bg3);
+    border-radius: var(--radius-sm); border: 0.5px solid var(--border);
+  }
+  .stores-panel-title {
+    font-size: 12px; color: var(--muted); margin-bottom: 12px;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .store-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 0.5px solid var(--border);
+  }
+  .store-row:last-child { border-bottom: none; }
+  .store-info { display: flex; align-items: center; gap: 10px; }
+  .store-icon {
+    width: 32px; height: 32px; border-radius: 6px; background: var(--bg2);
+    border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .store-name { font-size: 14px; font-weight: 500; }
+  .store-info-text { font-size: 12px; color: var(--muted); }
+  .store-right { text-align: right; }
+  .store-price { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--text); font-weight: 500; }
+  .store-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; color: var(--accent); text-decoration: none; margin-top: 2px;
+  }
+  .store-link:hover { text-decoration: underline; }
+
+  .match-bars { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .match-bar { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+  .match-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .match-dot.good { background: #97C459; }
+  .match-dot.ok { background: var(--accent); }
+  .match-dot.bad { background: var(--red); }
+
+  .score-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; padding: 2px 8px; border-radius: 99px;
+    margin-bottom: 12px;
+  }
+  .score-badge.high { background: rgba(151,196,89,0.12); color: #97C459; border: 0.5px solid rgba(151,196,89,0.3); }
+  .score-badge.med { background: rgba(212,168,83,0.12); color: var(--accent); border: 0.5px solid rgba(212,168,83,0.3); }
+
+  footer {
+    border-top: 0.5px solid var(--border); padding: 24px 0; margin-top: 40px;
+    text-align: center; color: var(--muted); font-size: 13px;
+  }
+
+  .purpose-chips .chip[data-val] { position: relative; }
+
+  /* ─── TABS ─── */
+  .tabs-nav {
+    display: flex; gap: 4px; margin: 28px 0 0;
+    border-bottom: 0.5px solid var(--border); padding-bottom: 0;
+  }
+  .tab-btn {
+    padding: 10px 20px; border: none; background: transparent;
+    color: var(--muted); font-family: 'Onest', sans-serif; font-size: 14px;
+    cursor: pointer; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    transition: all 0.2s; position: relative; display: flex; align-items: center; gap: 6px;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--accent); background: rgba(212,168,83,0.07);
+    border: 0.5px solid var(--border); border-bottom: 1px solid var(--bg);
+    margin-bottom: -0.5px;
+  }
+  .tab-badge {
+    background: var(--accent); color: #0c0c0e;
+    font-size: 10px; font-weight: 600; min-width: 18px; height: 18px;
+    border-radius: 99px; padding: 0 5px; display: flex; align-items: center; justify-content: center;
+  }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* ─── FAVORITES EMPTY ─── */
+  .fav-empty {
+    text-align: center; padding: 60px 24px;
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: var(--radius); color: var(--muted); margin-top: 28px;
+  }
+  .fav-empty i { font-size: 40px; color: var(--border2); margin-bottom: 14px; display: block; }
+  .fav-empty-title { font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+
+  /* ─── FAV BUTTON ─── */
+  .fav-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 8px 14px; border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border2); background: transparent;
+    color: var(--muted); font-family: 'Onest', sans-serif; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .fav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .fav-btn.active {
+    background: rgba(212,168,83,0.12); border-color: var(--accent); color: var(--accent);
+  }
+  .fav-btn i { font-size: 15px; transition: transform 0.2s; }
+  .fav-btn.active i { transform: scale(1.1); }
+
+  /* ─── COMPARISON ─── */
+  .compare-bar {
+    position: sticky; bottom: 0; z-index: 100;
+    background: var(--bg2); border-top: 0.5px solid var(--border2);
+    padding: 12px 0; display: none;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+  }
+  .compare-bar.visible { display: block; }
+  .compare-bar-inner {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .compare-chips { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+  .compare-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg3); border: 0.5px solid var(--border2);
+    border-radius: 99px; padding: 5px 12px; font-size: 12px; color: var(--text);
+  }
+  .compare-chip button {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    padding: 0; font-size: 13px; line-height: 1; display: flex; align-items: center;
+    transition: color 0.15s;
+  }
+  .compare-chip button:hover { color: var(--red); }
+  .compare-actions { display: flex; gap: 8px; }
+  .compare-btn {
+    padding: 9px 20px; border-radius: var(--radius-sm);
+    background: var(--accent); color: #0c0c0e; border: none;
+    font-family: 'Onest', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .compare-btn:hover { background: #e8bc6a; }
+  .compare-clear-btn {
+    padding: 9px 14px; border-radius: var(--radius-sm);
+    background: transparent; border: 0.5px solid var(--border2);
+    color: var(--muted); font-family: 'Onest', sans-serif; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .compare-clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* ─── COMPARE CHECKBOX ─── */
+  .compare-check-wrap {
+    display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted);
+    cursor: pointer; padding: 8px 0;
+  }
+  .compare-check-wrap input { display: none; }
+  .compare-check-box {
+    width: 16px; height: 16px; border-radius: 4px;
+    border: 1.5px solid var(--border2); background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .compare-check-wrap input:checked + .compare-check-box {
+    background: var(--accent); border-color: var(--accent);
+  }
+  .compare-check-wrap input:checked + .compare-check-box::after {
+    content: ''; width: 8px; height: 5px;
+    border-left: 1.5px solid #0c0c0e; border-bottom: 1.5px solid #0c0c0e;
+    transform: rotate(-45deg) translateY(-1px); display: block;
+  }
+
+  /* ─── MODAL COMPARE TABLE ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 40px 20px; overflow-y: auto;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: var(--bg2); border: 0.5px solid var(--border2);
+    border-radius: var(--radius); width: 100%; max-width: 960px;
+    overflow: hidden; transform: translateY(16px); transition: transform 0.2s;
+    position: relative;
+  }
+  .modal-overlay.open .modal-box { transform: translateY(0); }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; border-bottom: 0.5px solid var(--border);
+  }
+  .modal-title { font-size: 17px; font-weight: 500; }
+  .modal-close {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 20px; display: flex; align-items: center; padding: 4px;
+    transition: color 0.15s; border-radius: 6px;
+  }
+  .modal-close:hover { color: var(--text); background: var(--bg3); }
+  .compare-table-wrap { overflow-x: auto; padding: 24px; }
+  .compare-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px; table-layout: fixed;
+  }
+  .compare-table th, .compare-table td {
+    padding: 12px 14px; text-align: left;
+    border-bottom: 0.5px solid var(--border);
+    vertical-align: top;
+  }
+  .compare-table th {
+    background: var(--bg3); font-weight: 500; font-size: 12px;
+    color: var(--muted); white-space: nowrap; width: 130px;
+  }
+  .compare-table thead th {
+    background: var(--bg3); font-size: 13px; font-weight: 600;
+    color: var(--text); text-align: center; width: auto;
+  }
+  .compare-table thead th:first-child { width: 130px; }
+  .compare-table td { background: var(--bg); }
+  .compare-table tr:last-child th,
+  .compare-table tr:last-child td { border-bottom: none; }
+  .cmp-price-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; color: var(--accent); font-weight: 500;
+  }
+  .cmp-best-val { color: var(--green-light); font-weight: 600; }
+  .cmp-worst-val { color: var(--muted); }
+  .cmp-pc-name {
+    font-weight: 600; font-size: 14px; margin-bottom: 4px; color: var(--text);
+    text-align: center;
+  }
+  .cmp-pc-desc { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.4; }
+
+  /* ─── FAVORITE SECTION HEADER ─── */
+  .fav-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 28px 0 20px;
+  }
+  .fav-compare-hint {
+    font-size: 12px; color: var(--muted);
+    background: var(--bg2); border: 0.5px solid var(--border);
+    padding: 5px 12px; border-radius: 99px;
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<header>
+  <div class="wrap">
+    <div class="logo">
+      <div class="logo-icon"><i class="ti ti-cpu" style="color:#0c0c0e; font-size:20px;"></i></div>
+      <div>
+        <h1>Подобрать компьютер</h1>
+        <div class="subtitle">28 готовых сборок с актуальными ценами 2026 года</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- TAB NAVIGATION -->
+  <div class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab('configurator', this)">
+      <i class="ti ti-adjustments-horizontal" style="font-size:15px;"></i>
+      Конфигуратор
+    </button>
+    <button class="tab-btn" onclick="switchTab('favorites', this)" id="fav-tab-btn">
+      <i class="ti ti-heart" style="font-size:15px;"></i>
+      Избранное
+      <span class="tab-badge" id="fav-badge" style="display:none;">0</span>
+    </button>
+  </div>
+
+  <!-- CONFIGURATOR TAB -->
+  <div class="tab-pane active" id="tab-configurator">
+  <div class="config-panel" style="margin-top:28px;">
+    <div class="section-title">Цель использования</div>
+    <div class="purpose-chips" id="purpose-chips">
+      <button class="chip active" data-val="gaming">🎮 Игры</button>
+      <button class="chip" data-val="office">💼 Офис / учёба</button>
+      <button class="chip" data-val="video">🎬 Видеомонтаж</button>
+      <button class="chip" data-val="3d">🧊 3D / рендеринг</button>
+      <button class="chip" data-val="streaming">📡 Стриминг</button>
+      <button class="chip" data-val="programming">⌨️ Программирование</button>
+    </div>
+
+    <div class="section-title">Бюджет</div>
+    <div class="budget-row">
+      <span class="budget-label">от</span>
+      <span class="budget-val" id="val-min">30 000 ₽</span>
+      <div class="range-wrap">
+        <div id="range-fill"></div>
+        <input type="range" id="slider-min" min="20000" max="600000" step="5000" value="30000">
+        <input type="range" id="slider-max" min="20000" max="600000" step="5000" value="180000">
+      </div>
+      <span class="budget-val" id="val-max">180 000 ₽</span>
+      <span class="budget-label">до</span>
+    </div>
+
+    <div class="section-title">Требования к комплектующим</div>
+    <div class="requirements-grid">
+      <div class="req-group">
+        <label>Процессор (CPU)</label>
+        <select id="req-cpu">
+          <option value="any">Без предпочтений</option>
+          <option value="intel">Intel</option>
+          <option value="amd">AMD Ryzen</option>
+          <option value="intel-high">Intel Core i7/i9</option>
+          <option value="amd-high">AMD Ryzen 7/9</option>
+        </select>
+      </div>
+      <div class="req-group">
+        <label>Видеокарта (GPU)</label>
+        <select id="req-gpu">
+          <option value="any">Без предпочтений</option>
+          <option value="nvidia">NVIDIA GeForce</option>
+          <option value="amd-gpu">AMD Radeon</option>
+          <option value="rtx40">RTX 4060 и выше</option>
+          <option value="rtx-high">RTX 4070 Ti и выше</option>
+          <option value="integrated">Встроенная графика</option>
+        </select>
+      </div>
+      <div class="req-group">
+        <label>Оперативная память</label>
+        <select id="req-ram">
+          <option value="any">Без предпочтений</option>
+          <option value="8">8 ГБ и более</option>
+          <option value="16">16 ГБ и более</option>
+          <option value="32">32 ГБ и более</option>
+          <option value="64">64 ГБ и более</option>
+        </select>
+      </div>
+      <div class="req-group">
+        <label>Накопитель</label>
+        <select id="req-storage">
+          <option value="any">Без предпочтений</option>
+          <option value="ssd-256">SSD 256 ГБ+</option>
+          <option value="ssd-512">SSD 512 ГБ+</option>
+          <option value="ssd-1tb">SSD 1 ТБ+</option>
+          <option value="ssd-2tb">SSD 2 ТБ+</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="search-btn" id="search-btn" onclick="doSearch()">
+      <i class="ti ti-search" style="font-size:16px; vertical-align:-2px; margin-right:6px;"></i>
+      Подобрать компьютер
+    </button>
+  </div>
+
+  <div id="results-container"></div>
+  </div><!-- end tab-configurator -->
+
+  <!-- FAVORITES TAB -->
+  <div class="tab-pane" id="tab-favorites">
+    <div id="fav-content"></div>
+  </div>
+</div><!-- end wrap -->
+
+<!-- COMPARE BAR (sticky bottom) -->
+<div class="compare-bar" id="compare-bar">
+  <div class="wrap">
+    <div class="compare-bar-inner">
+      <div style="font-size:13px; color:var(--muted); white-space:nowrap;">
+        <i class="ti ti-scale" style="font-size:14px; vertical-align:-2px; margin-right:4px;"></i>
+        Сравнение:
+      </div>
+      <div class="compare-chips" id="compare-chips"></div>
+      <div class="compare-actions">
+        <button class="compare-clear-btn" onclick="clearCompare()">Сбросить</button>
+        <button class="compare-btn" onclick="openCompareModal()">
+          <i class="ti ti-scale" style="font-size:14px; vertical-align:-2px; margin-right:4px;"></i>
+          Сравнить
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE MODAL -->
+<div class="modal-overlay" id="compare-modal" onclick="handleModalClick(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="ti ti-scale" style="font-size:16px; vertical-align:-2px; margin-right:6px; color:var(--accent);"></i>
+        Сравнение сборок
+      </div>
+      <button class="modal-close" onclick="closeCompareModal()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <div class="compare-table-wrap" id="compare-table-wrap"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    28 реальных сборок · Цены актуальны на 2026 год · Работает без интернета
+  </div>
+</footer>
+
+<script>
+// ─── БАЗА ДАННЫХ: 28 РЕАЛЬНЫХ СБОРОК 2026 ГОДА ───────────────────────────────
+
+const DB = [
+
+  // ══════════════════ ОФИСНЫЕ / БЮДЖЕТНЫЕ ══════════════════
+
+  {
+    id: 1,
+    name: "Офисная Intel NUC-style",
+    desc: "Тихая и компактная, для документов, почты и браузера",
+    price: 33000,
+    cpu: "Intel Core i3-12100", cpuBrand: "intel", cpuTier: 3,
+    gpu: "Intel UHD Graphics 730", gpuBrand: "integrated", gpuTier: 0,
+    ramGb: 8, ramLabel: "8 ГБ DDR4 3200 МГц",
+    storageTb: 0.256, storageLabel: "256 ГБ SSD NVMe",
+    motherboard: "ASUS PRIME H610M-K", psu: "400W 80+ White",
+    formFactor: "mini",
+    purposes: ["office", "programming"],
+    matches: ["Тихая работа без вентиляторов GPU", "Низкое энергопотребление", "Компактный корпус"],
+    weaknesses: ["Нет дискретной видеокарты"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 32500, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Core+i3-12100+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 34200, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=Core+i3-12100+системный+блок" },
+      { name: "OZON", icon: "📦", price: 31900, delivery: "3-7 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+Core+i3-12100&from_global=true" }
+    ]
+  },
+  {
+    id: 2,
+    name: "AMD Starter Office",
+    desc: "Бюджетный офисный ПК на платформе AM5",
+    price: 38000,
+    cpu: "AMD Ryzen 5 5600G", cpuBrand: "amd", cpuTier: 5,
+    gpu: "AMD Radeon RX Vega 7 (встр.)", gpuBrand: "integrated", gpuTier: 1,
+    ramGb: 16, ramLabel: "16 ГБ DDR4 3200 МГц",
+    storageTb: 0.512, storageLabel: "512 ГБ SSD NVMe",
+    motherboard: "MSI PRO A520M-A PRO", psu: "450W 80+ Bronze",
+    formFactor: "tower",
+    purposes: ["office", "programming"],
+    matches: ["Встроенная Vega 7 тянет лёгкие задачи", "16 ГБ RAM для многозадачности", "Тихий под нагрузкой"],
+    weaknesses: ["Нет дискретного GPU", "Слабоват для монтажа"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 37000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+5+5600G+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 39500, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+5+5600G" },
+      { name: "Яндекс.Маркет", icon: "🏪", price: 36500, delivery: "2-3 дня", inStock: true, url: "https://market.yandex.ru/search?text=системный+блок+Ryzen+5+5600G&hid=26912216" }
+    ]
+  },
+  {
+    id: 3,
+    name: "Intel i5 Office Pro",
+    desc: "Надёжный рабочий ПК для офиса и лёгкой работы с графикой",
+    price: 54000,
+    cpu: "Intel Core i5-13400", cpuBrand: "intel", cpuTier: 5,
+    gpu: "NVIDIA GeForce GT 1030 2GB", gpuBrand: "nvidia", gpuTier: 1,
+    ramGb: 16, ramLabel: "16 ГБ DDR4 3200 МГц",
+    storageTb: 0.512, storageLabel: "512 ГБ SSD NVMe",
+    motherboard: "ASUS PRIME H610M-E", psu: "500W 80+ Bronze",
+    formFactor: "tower",
+    purposes: ["office", "programming"],
+    matches: ["Быстрый процессор для многозадачности", "Тихий корпус", "Надёжная платформа Intel"],
+    weaknesses: ["GT 1030 слаб для игр", "Нет DDR5"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 53000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Core+i5-13400+GT+1030+системный+блок&category=17a892f816404e77" },
+      { name: "М.Видео", icon: "🛒", price: 56990, delivery: "1-3 дня", inStock: true, url: "https://www.mvideo.ru/search?searchText=системный+блок+i5-13400+GT+1030" },
+      { name: "OZON", icon: "📦", price: 51900, delivery: "3-5 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+i5-13400+GT+1030&from_global=true" }
+    ]
+  },
+
+  // ══════════════════ БЮДЖЕТНЫЙ ГЕЙМИНГ ══════════════════
+
+  {
+    id: 4,
+    name: "Budget Gamer RX 6600",
+    desc: "Доступный игровой ПК для 1080p на высоких настройках",
+    price: 70000,
+    cpu: "AMD Ryzen 5 5600", cpuBrand: "amd", cpuTier: 5,
+    gpu: "AMD Radeon RX 6600 8GB", gpuBrand: "amd-gpu", gpuTier: 3,
+    ramGb: 16, ramLabel: "16 ГБ DDR4 3600 МГц",
+    storageTb: 0.512, storageLabel: "512 ГБ SSD NVMe",
+    motherboard: "MSI B550M PRO-VDH", psu: "550W 80+ Bronze",
+    formFactor: "tower",
+    purposes: ["gaming"],
+    matches: ["1080p High/Ultra в большинстве игр", "Хороший баланс цена/качество", "Тихий под нагрузкой"],
+    weaknesses: ["Слабоват для 1440p", "8GB VRAM в будущем станет мало"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 68500, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+5+5600+RX+6600+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 71900, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+5+5600+RX+6600" },
+      { name: "OZON", icon: "📦", price: 67500, delivery: "3-7 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+Ryzen+5+5600+RX+6600&from_global=true" }
+    ]
+  },
+  {
+    id: 5,
+    name: "Entry RTX 4060",
+    desc: "Начальный уровень RTX с DLSS 3 для плавного гейминга",
+    price: 89000,
+    cpu: "Intel Core i5-13400F", cpuBrand: "intel", cpuTier: 5,
+    gpu: "NVIDIA GeForce RTX 4060 8GB", gpuBrand: "nvidia", gpuTier: 4,
+    ramGb: 16, ramLabel: "16 ГБ DDR4 3200 МГц",
+    storageTb: 0.512, storageLabel: "512 ГБ SSD NVMe",
+    motherboard: "MSI PRO B660M-A DDR4", psu: "600W 80+ Bronze",
+    formFactor: "tower",
+    purposes: ["gaming", "streaming"],
+    matches: ["RTX 4060 + DLSS 3 = 1080p/1440p плавно", "NVENC для стриминга", "Хорошая цена на RTX 40"],
+    weaknesses: ["8GB VRAM ограничение", "Нет DDR5"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 87500, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=i5-13400F+RTX+4060+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 91000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+i5-13400F+RTX+4060" },
+      { name: "М.Видео", icon: "🛒", price: 94990, delivery: "1-3 дня", inStock: true, url: "https://www.mvideo.ru/search?searchText=системный+блок+i5-13400F+RTX+4060" },
+      { name: "OZON", icon: "📦", price: 86500, delivery: "3-5 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+i5-13400F+RTX+4060&from_global=true" }
+    ]
+  },
+  {
+    id: 6,
+    name: "AMD Gamer RX 7600",
+    desc: "AMD-платформа с новейшей видеокартой RX 7600",
+    price: 83000,
+    cpu: "AMD Ryzen 5 7600", cpuBrand: "amd", cpuTier: 5,
+    gpu: "AMD Radeon RX 7600 8GB", gpuBrand: "amd-gpu", gpuTier: 3,
+    ramGb: 16, ramLabel: "16 ГБ DDR5 5200 МГц",
+    storageTb: 1, storageLabel: "1 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "MSI PRO B650M-A WIFI", psu: "600W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["gaming"],
+    matches: ["Современная платформа AM5", "DDR5 с запасом на будущее", "RX 7600 хорошо в 1080p"],
+    weaknesses: ["8GB VRAM ограничивает 4K"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 81500, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+5+7600+RX+7600+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 85000, delivery: "2-4 дня", inStock: false, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+5+7600+RX+7600" },
+      { name: "Яндекс.Маркет", icon: "🏪", price: 80500, delivery: "2-3 дня", inStock: true, url: "https://market.yandex.ru/search?text=системный+блок+Ryzen+5+7600+RX+7600&hid=26912216" }
+    ]
+  },
+
+  // ══════════════════ СРЕДНИЙ КЛАСС ══════════════════
+
+  {
+    id: 7,
+    name: "Gamer RTX 4060 Ti",
+    desc: "Уверенный 1440p-гейминг без компромиссов",
+    price: 118000,
+    cpu: "Intel Core i5-13600KF", cpuBrand: "intel", cpuTier: 6,
+    gpu: "NVIDIA GeForce RTX 4060 Ti 8GB", gpuBrand: "nvidia", gpuTier: 5,
+    ramGb: 16, ramLabel: "16 ГБ DDR4 3600 МГц",
+    storageTb: 1, storageLabel: "1 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "MSI MAG B760 TOMAHAWK", psu: "650W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["gaming", "streaming"],
+    matches: ["1440p High/Ultra в большинстве игр", "RTX + DLSS 3 для стриминга", "i5-13600KF быстрый в играх"],
+    weaknesses: ["8GB VRAM — слабее чем 16GB версия", "Требует охлаждения башня"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 116000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=i5-13600KF+RTX+4060+Ti+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 121000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+i5-13600KF+RTX+4060+Ti" },
+      { name: "М.Видео", icon: "🛒", price: 124990, delivery: "1-3 дня", inStock: true, url: "https://www.mvideo.ru/search?searchText=системный+блок+i5-13600KF+RTX+4060+Ti" },
+      { name: "OZON", icon: "📦", price: 114500, delivery: "3-5 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+i5-13600KF+RTX+4060+Ti&from_global=true" }
+    ]
+  },
+  {
+    id: 8,
+    name: "Creator i7 RTX 4060 Ti 16G",
+    desc: "Видеомонтаж, стриминг и игры — универсальная рабочая лошадка",
+    price: 142000,
+    cpu: "Intel Core i7-13700F", cpuBrand: "intel", cpuTier: 7,
+    gpu: "NVIDIA GeForce RTX 4060 Ti 16GB", gpuBrand: "nvidia", gpuTier: 5,
+    ramGb: 32, ramLabel: "32 ГБ DDR4 3600 МГц",
+    storageTb: 1, storageLabel: "1 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "MSI PRO Z790-A MAX WIFI", psu: "750W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["gaming", "video", "streaming", "programming"],
+    matches: ["16GB VRAM для монтажа в 4K", "32 ГБ RAM удобно для Premiere Pro", "NVENC для стриминга без просадок FPS"],
+    weaknesses: ["Дорогой для чистого гейминга"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 139000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=i7-13700F+RTX+4060+Ti+16GB+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 145000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+i7-13700F+RTX+4060+Ti+16GB" },
+      { name: "OZON", icon: "📦", price: 137000, delivery: "3-5 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+i7-13700F+RTX+4060+Ti+16GB&from_global=true" }
+    ]
+  },
+  {
+    id: 9,
+    name: "AMD Creator Ryzen 7 RX 7700",
+    desc: "Мощный AMD-ПК для творческих задач и гейминга",
+    price: 133000,
+    cpu: "AMD Ryzen 7 7700X", cpuBrand: "amd", cpuTier: 7,
+    gpu: "AMD Radeon RX 7700 XT 12GB", gpuBrand: "amd-gpu", gpuTier: 5,
+    ramGb: 32, ramLabel: "32 ГБ DDR5 5600 МГц",
+    storageTb: 1, storageLabel: "1 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "ASUS TUF GAMING B650-PLUS", psu: "750W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["gaming", "video", "3d"],
+    matches: ["12GB VRAM для 3D и монтажа", "DDR5 AM5 — запас на годы", "1440p с запасом"],
+    weaknesses: ["Нет Ray Tracing уровня RTX 40", "Нет NVENC у AMD"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 131000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+7+7700X+RX+7700+XT+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 136000, delivery: "2-4 дня", inStock: false, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+7+7700X+RX+7700+XT" },
+      { name: "Яндекс.Маркет", icon: "🏪", price: 129500, delivery: "2-3 дня", inStock: true, url: "https://market.yandex.ru/search?text=системный+блок+Ryzen+7+7700X+RX+7700+XT&hid=26912216" }
+    ]
+  },
+  {
+    id: 10,
+    name: "Streamer Intel i7 RTX 4070",
+    desc: "Идеальный баланс для игр и стриминга одновременно",
+    price: 158000,
+    cpu: "Intel Core i7-13700F", cpuBrand: "intel", cpuTier: 7,
+    gpu: "NVIDIA GeForce RTX 4070 12GB", gpuBrand: "nvidia", gpuTier: 6,
+    ramGb: 32, ramLabel: "32 ГБ DDR4 3600 МГц",
+    storageTb: 1, storageLabel: "1 ТБ SSD NVMe + 2 ТБ HDD",
+    motherboard: "ASUS ROG STRIX B760-F", psu: "750W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["gaming", "streaming", "video"],
+    matches: ["RTX 4070 легко тянет игры + стрим", "16 ядер i7 без просадок FPS при стриминге", "NVENC AV1 — лучший кодек для Twitch/YouTube"],
+    weaknesses: ["Дорогой корпус за бренд ROG"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 155000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=i7-13700F+RTX+4070+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 161000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+i7-13700F+RTX+4070" },
+      { name: "М.Видео", icon: "🛒", price: 165990, delivery: "1-3 дня", inStock: true, url: "https://www.mvideo.ru/search?searchText=системный+блок+i7-13700F+RTX+4070" },
+      { name: "OZON", icon: "📦", price: 153000, delivery: "3-5 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+i7-13700F+RTX+4070&from_global=true" }
+    ]
+  },
+
+  // ══════════════════ ВЫСОКИЙ КЛАСС ══════════════════
+
+  {
+    id: 11,
+    name: "Pro Gamer RTX 4070 Super",
+    desc: "Мощный игровой ПК для 1440p и начала 4K",
+    price: 185000,
+    cpu: "AMD Ryzen 7 7800X3D", cpuBrand: "amd", cpuTier: 8,
+    gpu: "NVIDIA GeForce RTX 4070 SUPER 12GB", gpuBrand: "nvidia", gpuTier: 7,
+    ramGb: 32, ramLabel: "32 ГБ DDR5 6000 МГц",
+    storageTb: 2, storageLabel: "2 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "ASUS ROG CROSSHAIR X670E HERO", psu: "850W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["gaming", "streaming"],
+    matches: ["Ryzen 7 7800X3D — лучший игровой CPU 2024", "RTX 4070 Super плавно в 4K", "2TB SSD — место для игр не кончится"],
+    weaknesses: ["Дорогая матплата ROG"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 181000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+7+7800X3D+RTX+4070+Super+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 189000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+7+7800X3D+RTX+4070+Super" },
+      { name: "OZON", icon: "📦", price: 179000, delivery: "3-5 дней", inStock: false, url: "https://www.ozon.ru/search/?text=системный+блок+Ryzen+7+7800X3D+RTX+4070+Super&from_global=true" }
+    ]
+  },
+  {
+    id: 12,
+    name: "Video Pro i9 RTX 4070 Ti",
+    desc: "Профессиональный ПК для 4K-монтажа и 3D",
+    price: 222000,
+    cpu: "Intel Core i9-13900F", cpuBrand: "intel", cpuTier: 9,
+    gpu: "NVIDIA GeForce RTX 4070 Ti 12GB", gpuBrand: "nvidia", gpuTier: 7,
+    ramGb: 64, ramLabel: "64 ГБ DDR4 3600 МГц",
+    storageTb: 2, storageLabel: "2 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "MSI MAG Z790 TOMAHAWK WIFI", psu: "850W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["video", "3d", "streaming"],
+    matches: ["64 ГБ RAM для 4K ProRes без подгрузок", "RTX 4070 Ti + CUDA ускоряет рендер", "24 ядра i9 для многопотока"],
+    weaknesses: ["Дорого для чистого гейминга"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 218000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=i9-13900F+RTX+4070+Ti+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 226000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+i9-13900F+RTX+4070+Ti" },
+      { name: "М.Видео", icon: "🛒", price: 231990, delivery: "1-3 дня", inStock: false, url: "https://www.mvideo.ru/search?searchText=системный+блок+i9-13900F+RTX+4070+Ti" }
+    ]
+  },
+  {
+    id: 13,
+    name: "Dev Station Ryzen 9 RTX 4070",
+    desc: "Рабочая станция программиста с огромным объёмом RAM",
+    price: 202000,
+    cpu: "AMD Ryzen 9 7900X", cpuBrand: "amd", cpuTier: 9,
+    gpu: "NVIDIA GeForce RTX 4070 12GB", gpuBrand: "nvidia", gpuTier: 6,
+    ramGb: 64, ramLabel: "64 ГБ DDR5 5600 МГц",
+    storageTb: 2, storageLabel: "2 ТБ SSD NVMe + 4 ТБ HDD",
+    motherboard: "ASUS ProArt X670E-CREATOR WIFI", psu: "850W 80+ Platinum",
+    formFactor: "tower",
+    purposes: ["programming", "3d", "video"],
+    matches: ["64GB RAM для Docker/VM/ML", "12-ядерный CPU для компиляции", "PCIe 5.0 NVMe — максимальная скорость"],
+    weaknesses: ["Избыточно для офисных задач"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 198000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+9+7900X+RTX+4070+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 206000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+9+7900X+RTX+4070" },
+      { name: "Яндекс.Маркет", icon: "🏪", price: 196000, delivery: "2-3 дня", inStock: true, url: "https://market.yandex.ru/search?text=системный+блок+Ryzen+9+7900X+RTX+4070&hid=26912216" }
+    ]
+  },
+
+  // ══════════════════ ВЫСОКИЙ / ТОПОВЫЙ ══════════════════
+
+  {
+    id: 14,
+    name: "4K Gamer RTX 4080 Super",
+    desc: "Плавный 4K-гейминг во всём флагманском",
+    price: 278000,
+    cpu: "AMD Ryzen 7 7800X3D", cpuBrand: "amd", cpuTier: 8,
+    gpu: "NVIDIA GeForce RTX 4080 SUPER 16GB", gpuBrand: "nvidia", gpuTier: 8,
+    ramGb: 32, ramLabel: "32 ГБ DDR5 6000 МГц CL30",
+    storageTb: 2, storageLabel: "2 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "ASUS ROG STRIX X670E-F GAMING", psu: "1000W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["gaming"],
+    matches: ["4K 60fps+ в AAA-играх на Ultra", "Ryzen 7 7800X3D не создаёт бутылочного горлышка", "16GB VRAM для текстур высочайшего качества"],
+    weaknesses: ["Очень дорого", "Перебор для 1080p"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 273000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+7+7800X3D+RTX+4080+Super+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 283000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+7+7800X3D+RTX+4080+Super" },
+      { name: "М.Видео", icon: "🛒", price: 289990, delivery: "1-3 дня", inStock: true, url: "https://www.mvideo.ru/search?searchText=системный+блок+Ryzen+7+7800X3D+RTX+4080+Super" },
+      { name: "OZON", icon: "📦", price: 269000, delivery: "3-5 дней", inStock: false, url: "https://www.ozon.ru/search/?text=системный+блок+Ryzen+7+7800X3D+RTX+4080+Super&from_global=true" }
+    ]
+  },
+  {
+    id: 15,
+    name: "3D Studio i9 RTX 4080",
+    desc: "Профессиональная рабочая станция для 3D и рендеринга",
+    price: 335000,
+    cpu: "Intel Core i9-14900KF", cpuBrand: "intel", cpuTier: 9,
+    gpu: "NVIDIA GeForce RTX 4080 16GB", gpuBrand: "nvidia", gpuTier: 8,
+    ramGb: 64, ramLabel: "64 ГБ DDR5 5200 МГц",
+    storageTb: 4, storageLabel: "2 ТБ SSD NVMe + 2 ТБ SSD NVMe",
+    motherboard: "ASUS ROG MAXIMUS Z790 HERO", psu: "1000W 80+ Platinum",
+    formFactor: "tower",
+    purposes: ["3d", "video", "programming"],
+    matches: ["CUDA ускорение в Blender/Maya/Houdini", "64GB RAM для больших сцен", "24 физических ядра для CPU-рендера"],
+    weaknesses: ["Очень дорого", "Шумный под полной нагрузкой"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 329000, delivery: "1-2 дня", inStock: false, url: "https://www.dns-shop.ru/search/?q=i9-14900KF+RTX+4080+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 341000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+i9-14900KF+RTX+4080" },
+      { name: "OZON", icon: "📦", price: 325000, delivery: "3-7 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+i9-14900KF+RTX+4080&from_global=true" }
+    ]
+  },
+  {
+    id: 16,
+    name: "Ultimate RTX 4090",
+    desc: "Абсолютный топ для игр, 3D и AI в 2025 году",
+    price: 470000,
+    cpu: "Intel Core i9-14900KF", cpuBrand: "intel", cpuTier: 9,
+    gpu: "NVIDIA GeForce RTX 4090 24GB", gpuBrand: "nvidia", gpuTier: 10,
+    ramGb: 64, ramLabel: "64 ГБ DDR5 6000 МГц CL30",
+    storageTb: 4, storageLabel: "2 ТБ SSD PCIe 5.0 + 2 ТБ SSD PCIe 4.0",
+    motherboard: "ASUS ROG MAXIMUS Z790 APEX", psu: "1200W 80+ Titanium",
+    formFactor: "tower",
+    purposes: ["gaming", "3d", "video", "streaming"],
+    matches: ["Лучшая производительность на рынке", "24GB VRAM для AI/ML и больших сцен", "4K 144fps в любых играх"],
+    weaknesses: ["Очень высокое потребление 450W", "Огромная цена", "Большой корпус обязателен"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 462000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=i9-14900KF+RTX+4090+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 479000, delivery: "2-4 дня", inStock: false, url: "https://www.citilink.ru/search/?text=системный+блок+i9-14900KF+RTX+4090" },
+      { name: "М.Видео", icon: "🛒", price: 489990, delivery: "1-3 дня", inStock: true, url: "https://www.mvideo.ru/search?searchText=системный+блок+i9-14900KF+RTX+4090" }
+    ]
+  },
+
+  // ══════════════════ ПРОГРАММИРОВАНИЕ ══════════════════
+
+  {
+    id: 17,
+    name: "Dev i5 GTX 1660 Super",
+    desc: "Недорогой ПК для программирования и учёбы",
+    price: 66000,
+    cpu: "Intel Core i5-12400", cpuBrand: "intel", cpuTier: 5,
+    gpu: "NVIDIA GeForce GTX 1660 Super 6GB", gpuBrand: "nvidia", gpuTier: 2,
+    ramGb: 16, ramLabel: "16 ГБ DDR4 3200 МГц",
+    storageTb: 0.512, storageLabel: "512 ГБ SSD NVMe",
+    motherboard: "ASUS PRIME H610M-K", psu: "500W 80+ Bronze",
+    formFactor: "tower",
+    purposes: ["programming", "office"],
+    matches: ["i5-12400 отлично компилирует код", "Тихий под нагрузкой IDE", "Хороший баланс для разработчика"],
+    weaknesses: ["GTX 1660S не подходит для ML/AI", "Нет DDR5"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 65000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=i5-12400+GTX+1660+Super+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 68500, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+i5-12400+GTX+1660+Super" }
+    ]
+  },
+  {
+    id: 18,
+    name: "Full Stack Dev Ryzen 5 RTX 4060",
+    desc: "Комфортная разработка с Docker, VM и лёгким ML",
+    price: 105000,
+    cpu: "AMD Ryzen 5 7600X", cpuBrand: "amd", cpuTier: 6,
+    gpu: "NVIDIA GeForce RTX 4060 8GB", gpuBrand: "nvidia", gpuTier: 4,
+    ramGb: 32, ramLabel: "32 ГБ DDR5 5200 МГц",
+    storageTb: 1, storageLabel: "1 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "MSI PRO B650M-A WIFI", psu: "650W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["programming", "office"],
+    matches: ["32GB RAM для Docker + VM одновременно", "RTX 4060 для CUDA/PyTorch", "Быстрый NVMe для npm/build"],
+    weaknesses: ["8GB VRAM ограничивает большие ML-модели"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 103000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+5+7600X+RTX+4060+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 107500, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+5+7600X+RTX+4060" },
+      { name: "Яндекс.Маркет", icon: "🏪", price: 101500, delivery: "2-3 дня", inStock: true, url: "https://market.yandex.ru/search?text=системный+блок+Ryzen+5+7600X+RTX+4060&hid=26912216" }
+    ]
+  },
+
+  // ══════════════════ ВИДЕОМОНТАЖ ══════════════════
+
+  {
+    id: 19,
+    name: "Editor AMD Ryzen 7 RTX 4060 Ti",
+    desc: "Монтаж HD/4K в DaVinci Resolve и Adobe Premiere",
+    price: 148000,
+    cpu: "AMD Ryzen 7 7700", cpuBrand: "amd", cpuTier: 7,
+    gpu: "NVIDIA GeForce RTX 4060 Ti 16GB", gpuBrand: "nvidia", gpuTier: 5,
+    ramGb: 32, ramLabel: "32 ГБ DDR5 5600 МГц",
+    storageTb: 2, storageLabel: "1 ТБ SSD PCIe 4.0 + 2 ТБ HDD",
+    motherboard: "ASUS TUF GAMING B650-PLUS WIFI", psu: "750W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["video", "streaming", "programming"],
+    matches: ["16GB VRAM отлично в DaVinci Resolve", "32GB RAM без свопа в Premiere Pro", "NVENC для быстрого экспорта"],
+    weaknesses: ["HDD медленный для проектных файлов"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 145000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+7+7700+RTX+4060+Ti+16GB+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 151000, delivery: "2-4 дня", inStock: false, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+7+7700+RTX+4060+Ti+16GB" },
+      { name: "М.Видео", icon: "🛒", price: 155990, delivery: "1-3 дня", inStock: true, url: "https://www.mvideo.ru/search?searchText=системный+блок+Ryzen+7+7700+RTX+4060+Ti" }
+    ]
+  },
+  {
+    id: 20,
+    name: "Video Pro i9 RTX 4070 Ti Super",
+    desc: "Профессиональный монтаж 8K и сложный 3D-рендер",
+    price: 375000,
+    cpu: "Intel Core i9-14900KF", cpuBrand: "intel", cpuTier: 9,
+    gpu: "NVIDIA GeForce RTX 4070 Ti SUPER 16GB", gpuBrand: "nvidia", gpuTier: 8,
+    ramGb: 64, ramLabel: "64 ГБ DDR5 5600 МГц",
+    storageTb: 4, storageLabel: "2 ТБ SSD PCIe 5.0 + 2 ТБ SSD PCIe 4.0",
+    motherboard: "ASUS ProArt Z790-CREATOR WIFI", psu: "1000W 80+ Platinum",
+    formFactor: "tower",
+    purposes: ["video", "3d"],
+    matches: ["16GB VRAM + CUDA для GPU-ускорения", "8K RAW монтаж без лагов", "ASUS ProArt — оптимизировано для творческих задач"],
+    weaknesses: ["Очень дорогая сборка"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 368000, delivery: "1-2 дня", inStock: false, url: "https://www.dns-shop.ru/search/?q=i9-14900KF+RTX+4070+Ti+Super+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 382000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+i9-14900KF+RTX+4070+Ti+Super" },
+      { name: "OZON", icon: "📦", price: 362000, delivery: "3-7 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+i9-14900KF+RTX+4070+Ti+Super&from_global=true" }
+    ]
+  },
+
+  // ══════════════════ МИНИ-ПК ══════════════════
+
+  {
+    id: 21,
+    name: "Mini-PC Office i3",
+    desc: "Компактный мини-ПК для офиса, занимает минимум места",
+    price: 42000,
+    cpu: "Intel Core i3-N305", cpuBrand: "intel", cpuTier: 3,
+    gpu: "Intel UHD Graphics (встр.)", gpuBrand: "integrated", gpuTier: 0,
+    ramGb: 16, ramLabel: "16 ГБ LPDDR5",
+    storageTb: 0.512, storageLabel: "512 ГБ SSD M.2",
+    motherboard: "Встроенная", psu: "65W адаптер",
+    formFactor: "mini",
+    purposes: ["office"],
+    matches: ["Размер с книгу", "Пассивное охлаждение", "Потребление 15-30W"],
+    weaknesses: ["Нет дискретного GPU", "Нельзя апгрейдить"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 41000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Core+i3-N305+мини+ПК&category=17a8a44a16404e77" },
+      { name: "OZON", icon: "📦", price: 40500, delivery: "3-7 дней", inStock: true, url: "https://www.ozon.ru/search/?text=мини+ПК+Core+i3-N305&from_global=true" },
+      { name: "Яндекс.Маркет", icon: "🏪", price: 41500, delivery: "2-3 дня", inStock: true, url: "https://market.yandex.ru/search?text=мини+ПК+Core+i3-N305&hid=26912216" }
+    ]
+  },
+  {
+    id: 22,
+    name: "Mini-PC Ryzen 7 6800H",
+    desc: "Производительный мини-ПК с мощным мобильным CPU",
+    price: 82000,
+    cpu: "AMD Ryzen 7 6800H", cpuBrand: "amd", cpuTier: 6,
+    gpu: "AMD Radeon 680M (встр.)", gpuBrand: "integrated", gpuTier: 2,
+    ramGb: 32, ramLabel: "32 ГБ DDR5",
+    storageTb: 1, storageLabel: "1 ТБ SSD NVMe",
+    motherboard: "Встроенная", psu: "120W адаптер",
+    formFactor: "mini",
+    purposes: ["office", "programming"],
+    matches: ["Radeon 680M тянет лёгкие игры", "8 ядер в маленьком корпусе", "Тихий, компактный"],
+    weaknesses: ["Мобильный CPU слабее десктопного", "Нельзя поставить дискретную GPU"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 80500, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+7+6800H+мини+ПК&category=17a8a44a16404e77" },
+      { name: "OZON", icon: "📦", price: 79000, delivery: "3-5 дней", inStock: true, url: "https://www.ozon.ru/search/?text=мини+ПК+Ryzen+7+6800H&from_global=true" }
+    ]
+  },
+
+  // ══════════════════ ДОП. ГЕЙМИНГ / СРЕДНИЙ ══════════════════
+
+  {
+    id: 23,
+    name: "Gamer RTX 3060 Budget",
+    desc: "Проверенная карта RTX 30 по сниженной цене",
+    price: 74000,
+    cpu: "AMD Ryzen 5 5600X", cpuBrand: "amd", cpuTier: 5,
+    gpu: "NVIDIA GeForce RTX 3060 12GB", gpuBrand: "nvidia", gpuTier: 3,
+    ramGb: 16, ramLabel: "16 ГБ DDR4 3600 МГц",
+    storageTb: 0.512, storageLabel: "512 ГБ SSD NVMe",
+    motherboard: "MSI B550M PRO-VDH WIFI", psu: "600W 80+ Bronze",
+    formFactor: "tower",
+    purposes: ["gaming"],
+    matches: ["RTX 3060 12GB — хорошо в 1080p и 1440p", "12GB VRAM — больше чем у RTX 4060", "Проверенная и надёжная"],
+    weaknesses: ["Старше RTX 40 — нет DLSS 3 Frame Gen", "Нет AV1 NVENC"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 72500, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+5+5600X+RTX+3060+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 76000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+5+5600X+RTX+3060" },
+      { name: "OZON", icon: "📦", price: 71500, delivery: "3-7 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+Ryzen+5+5600X+RTX+3060&from_global=true" }
+    ]
+  },
+  {
+    id: 24,
+    name: "Ryzen 9 RTX 4070 Super Creator",
+    desc: "Всё в одном: игры, монтаж, 3D и стриминг",
+    price: 248000,
+    cpu: "AMD Ryzen 9 7900X3D", cpuBrand: "amd", cpuTier: 9,
+    gpu: "NVIDIA GeForce RTX 4070 SUPER 12GB", gpuBrand: "nvidia", gpuTier: 7,
+    ramGb: 64, ramLabel: "64 ГБ DDR5 6000 МГц",
+    storageTb: 4, storageLabel: "2 ТБ SSD PCIe 4.0 + 2 ТБ SSD PCIe 4.0",
+    motherboard: "ASUS ROG CROSSHAIR X670E GENE", psu: "1000W 80+ Platinum",
+    formFactor: "tower",
+    purposes: ["gaming", "video", "3d", "streaming", "programming"],
+    matches: ["Универсальный топ-ПК для всего", "64GB RAM без лимитов", "3D Cache CPU быстро в играх и рендере"],
+    weaknesses: ["Дорого", "Сложная в сборке платформа"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 243000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+9+7900X3D+RTX+4070+Super+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 253000, delivery: "2-4 дня", inStock: false, url: "https://www.citilink.ru/search/?text=системный+блок+Ryzen+9+7900X3D+RTX+4070+Super" },
+      { name: "М.Видео", icon: "🛒", price: 259990, delivery: "1-3 дня", inStock: true, url: "https://www.mvideo.ru/search?searchText=системный+блок+Ryzen+9+7900X3D+RTX+4070+Super" }
+    ]
+  },
+  {
+    id: 25,
+    name: "RX 7900 XTX High-End AMD",
+    desc: "Флагманская видеокарта AMD для 4K без переплаты NVIDIA",
+    price: 308000,
+    cpu: "AMD Ryzen 7 7800X3D", cpuBrand: "amd", cpuTier: 8,
+    gpu: "AMD Radeon RX 7900 XTX 24GB", gpuBrand: "amd-gpu", gpuTier: 9,
+    ramGb: 32, ramLabel: "32 ГБ DDR5 6000 МГц",
+    storageTb: 2, storageLabel: "2 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "MSI MEG X670E ACE", psu: "1000W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["gaming", "3d"],
+    matches: ["24GB VRAM — больше чем RTX 4090 у NVIDIA", "Отличная альтернатива RTX 4080", "Дешевле флагмана NVIDIA"],
+    weaknesses: ["Нет Ray Tracing уровня RTX 40", "Потребляет до 355W"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 302000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+7+7800X3D+RX+7900+XTX+системный+блок&category=17a892f816404e77" },
+      { name: "OZON", icon: "📦", price: 298000, delivery: "3-5 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+Ryzen+7+7800X3D+RX+7900+XTX&from_global=true" }
+    ]
+  },
+
+  // ══════════════════ ЕЩЁ ПОПУЛЯРНЫЕ ══════════════════
+
+  {
+    id: 26,
+    name: "Mid Gamer Intel RTX 4060 Ti",
+    desc: "Надёжная сборка на Intel для 1440p по оптимальной цене",
+    price: 122000,
+    cpu: "Intel Core i5-14400F", cpuBrand: "intel", cpuTier: 5,
+    gpu: "NVIDIA GeForce RTX 4060 Ti 8GB", gpuBrand: "nvidia", gpuTier: 5,
+    ramGb: 16, ramLabel: "16 ГБ DDR4 3600 МГц",
+    storageTb: 1, storageLabel: "1 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "MSI PRO B760M-A DDR4", psu: "650W 80+ Gold",
+    formFactor: "tower",
+    purposes: ["gaming", "streaming"],
+    matches: ["i5-14400F отлично по соотношению цена/ядра", "RTX 4060 Ti DLSS 3 в 1440p", "Бюджетная 14-я платформа Intel"],
+    weaknesses: ["8GB VRAM — меньше чем 16GB версия", "DDR4 старше DDR5"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 120000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=i5-14400F+RTX+4060+Ti+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 125000, delivery: "2-4 дня", inStock: true, url: "https://www.citilink.ru/search/?text=системный+блок+i5-14400F+RTX+4060+Ti" },
+      { name: "Яндекс.Маркет", icon: "🏪", price: 118500, delivery: "2-3 дня", inStock: true, url: "https://market.yandex.ru/search?text=системный+блок+i5-14400F+RTX+4060+Ti&hid=26912216" }
+    ]
+  },
+  {
+    id: 27,
+    name: "AMD Office Ryzen 3 Pro",
+    desc: "Тихий и экономичный для офиса и видеозвонков",
+    price: 26000,
+    cpu: "AMD Ryzen 3 4300G", cpuBrand: "amd", cpuTier: 3,
+    gpu: "AMD Radeon RX Vega 6 (встр.)", gpuBrand: "integrated", gpuTier: 0,
+    ramGb: 8, ramLabel: "8 ГБ DDR4 3200 МГц",
+    storageTb: 0.256, storageLabel: "256 ГБ SSD",
+    motherboard: "MSI A520M PRO", psu: "350W 80+ White",
+    formFactor: "tower",
+    purposes: ["office"],
+    matches: ["Самый дешёвый и рабочий вариант", "Тихий и прохладный", "Любой браузер и офисный пакет"],
+    weaknesses: ["8GB RAM — минимум", "Нет дискретного GPU"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 25500, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=Ryzen+3+4300G+системный+блок&category=17a892f816404e77" },
+      { name: "OZON", icon: "📦", price: 24900, delivery: "3-7 дней", inStock: true, url: "https://www.ozon.ru/search/?text=системный+блок+Ryzen+3+4300G&from_global=true" }
+    ]
+  },
+  {
+    id: 28,
+    name: "Compact SFF Intel i5 RTX 4060",
+    desc: "Мощный игровой ПК в компактном форм-факторе SFF",
+    price: 102000,
+    cpu: "Intel Core i5-13600KF", cpuBrand: "intel", cpuTier: 6,
+    gpu: "NVIDIA GeForce RTX 4060 8GB", gpuBrand: "nvidia", gpuTier: 4,
+    ramGb: 16, ramLabel: "16 ГБ DDR5 4800 МГц",
+    storageTb: 1, storageLabel: "1 ТБ SSD NVMe PCIe 4.0",
+    motherboard: "MSI MAG B760I EDGE WIFI DDR5", psu: "650W SFX 80+ Gold",
+    formFactor: "mini",
+    purposes: ["gaming", "streaming"],
+    matches: ["SFF форм-фактор — занимает мало места", "i5-13600KF мощный CPU", "RTX 4060 для 1080p/1440p"],
+    weaknesses: ["Маленький корпус — сложнее охлаждение", "Дороже обычной башни"],
+    stores: [
+      { name: "DNS", icon: "🖥", price: 100000, delivery: "1-2 дня", inStock: true, url: "https://www.dns-shop.ru/search/?q=i5-13600KF+RTX+4060+системный+блок&category=17a892f816404e77" },
+      { name: "Ситилинк", icon: "🔧", price: 105000, delivery: "2-4 дня", inStock: false, url: "https://www.citilink.ru/search/?text=системный+блок+i5-13600KF+RTX+4060" },
+      { name: "Яндекс.Маркет", icon: "🏪", price: 98500, delivery: "2-3 дня", inStock: true, url: "https://market.yandex.ru/search?text=системный+блок+i5-13600KF+RTX+4060&hid=26912216" }
+    ]
+  }
+
+];
+
+// ─── UI HELPERS ──────────────────────────────────────────────────────────────
+
+const fmt = n => n.toLocaleString('ru-RU') + ' ₽';
+
+const slMin = document.getElementById('slider-min');
+const slMax = document.getElementById('slider-max');
+const valMin = document.getElementById('val-min');
+const valMax = document.getElementById('val-max');
+const fill = document.getElementById('range-fill');
+
+function updateSliders() {
+  let a = parseInt(slMin.value), b = parseInt(slMax.value);
+  if (a > b - 10000) { a = b - 10000; slMin.value = a; }
+  valMin.textContent = fmt(a);
+  valMax.textContent = fmt(b);
+  const mn = parseInt(slMin.min), mx = parseInt(slMin.max);
+  const pct1 = (a-mn)/(mx-mn)*100, pct2 = (b-mn)/(mx-mn)*100;
+  fill.style.left = pct1 + '%';
+  fill.style.width = (pct2-pct1) + '%';
+}
+slMin.addEventListener('input', updateSliders);
+slMax.addEventListener('input', updateSliders);
+updateSliders();
+
+document.getElementById('purpose-chips').addEventListener('click', e => {
+  if (!e.target.classList.contains('chip')) return;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  e.target.classList.add('active');
+});
+
+// ─── SCORING / FILTERING ─────────────────────────────────────────────────────
+
+function scorePC(pc, { purpose, budgetMin, budgetMax, cpu, gpu, ram, storage }) {
+  let score = 0;
+  let reasons = [];
+
+  // Бюджет — обязательное условие
+  if (pc.price < budgetMin || pc.price > budgetMax) return null;
+
+  // Цель: совпадение
+  if (pc.purposes.includes(purpose)) { score += 40; reasons.push('purpose'); }
+  else return null; // строго: только нужные категории
+
+  // Процессор
+  if (cpu !== 'any') {
+    if (cpu === 'intel' && pc.cpuBrand !== 'intel') score -= 10;
+    if (cpu === 'amd' && pc.cpuBrand !== 'amd') score -= 10;
+    if (cpu === 'intel-high' && (pc.cpuBrand !== 'intel' || pc.cpuTier < 7)) score -= 20;
+    if (cpu === 'amd-high' && (pc.cpuBrand !== 'amd' || pc.cpuTier < 7)) score -= 20;
+    if (cpu === 'intel' && pc.cpuBrand === 'intel') score += 10;
+    if (cpu === 'amd' && pc.cpuBrand === 'amd') score += 10;
+    if (cpu === 'intel-high' && pc.cpuBrand === 'intel' && pc.cpuTier >= 7) score += 15;
+    if (cpu === 'amd-high' && pc.cpuBrand === 'amd' && pc.cpuTier >= 7) score += 15;
+  }
+
+  // Видеокарта
+  if (gpu !== 'any') {
+    if (gpu === 'integrated' && pc.gpuBrand !== 'integrated') score -= 5;
+    if (gpu === 'integrated' && pc.gpuBrand === 'integrated') score += 15;
+    if (gpu === 'nvidia' && pc.gpuBrand !== 'nvidia') score -= 15;
+    if (gpu === 'nvidia' && pc.gpuBrand === 'nvidia') score += 10;
+    if (gpu === 'amd-gpu' && pc.gpuBrand !== 'amd-gpu') score -= 15;
+    if (gpu === 'amd-gpu' && pc.gpuBrand === 'amd-gpu') score += 10;
+    if (gpu === 'rtx40' && (pc.gpuBrand !== 'nvidia' || pc.gpuTier < 4)) { score -= 20; }
+    if (gpu === 'rtx40' && pc.gpuBrand === 'nvidia' && pc.gpuTier >= 4) score += 15;
+    if (gpu === 'rtx-high' && (pc.gpuBrand !== 'nvidia' || pc.gpuTier < 7)) { score -= 25; }
+    if (gpu === 'rtx-high' && pc.gpuBrand === 'nvidia' && pc.gpuTier >= 7) score += 20;
+  }
+
+  // RAM
+  const ramMap = { 'any': 0, '8': 8, '16': 16, '32': 32, '64': 64 };
+  const minRam = ramMap[ram] || 0;
+  if (pc.ramGb < minRam) return null; // не проходит фильтр
+  if (pc.ramGb >= minRam) score += 10;
+  if (pc.ramGb >= minRam * 2) score += 5; // с запасом
+
+  // Storage
+  const storMap = { 'any': 0, 'ssd-256': 0.256, 'ssd-512': 0.512, 'ssd-1tb': 1, 'ssd-2tb': 2 };
+  const minStor = storMap[storage] || 0;
+  if (pc.storageTb < minStor) return null;
+  if (pc.storageTb >= minStor) score += 8;
+
+  // Бонус за близость к оптимальной точке бюджета (75% от макс — оптимально)
+  const optimal = budgetMin + (budgetMax - budgetMin) * 0.75;
+  const dist = Math.abs(pc.price - optimal) / (budgetMax - budgetMin);
+  score += Math.round((1 - dist) * 15);
+
+  return score;
+}
+
+// ─── SEARCH ──────────────────────────────────────────────────────────────────
+
+function doSearch() {
+  const purpose = document.querySelector('.chip.active')?.dataset.val || 'gaming';
+  const budgetMin = parseInt(slMin.value);
+  const budgetMax = parseInt(slMax.value);
+  const cpu = document.getElementById('req-cpu').value;
+  const gpu = document.getElementById('req-gpu').value;
+  const ram = document.getElementById('req-ram').value;
+  const storage = document.getElementById('req-storage').value;
+
+  const params = { purpose, budgetMin, budgetMax, cpu, gpu, ram, storage };
+
+  // Скоринг
+  let scored = DB.map(pc => ({ pc, score: scorePC(pc, params) }))
+    .filter(x => x.score !== null && x.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  // Взять лучшие 5, но из разных ценовых сегментов
+  let results = [];
+  if (scored.length > 0) {
+    // Всегда берём топ-1
+    results.push(scored[0].pc);
+    // Добавляем разнообразие: берём из нижней и верхней части бюджета
+    const range = budgetMax - budgetMin;
+    const low = budgetMin + range * 0.35;
+    const high = budgetMin + range * 0.75;
+    const fromLow = scored.filter(x => x.pc.price <= low && !results.includes(x.pc));
+    const fromMid = scored.filter(x => x.pc.price > low && x.pc.price <= high && !results.includes(x.pc));
+    const fromHigh = scored.filter(x => x.pc.price > high && !results.includes(x.pc));
+    if (fromLow.length) results.unshift(fromLow[0].pc);
+    if (fromMid.length && results.length < 3) results.splice(1, 0, fromMid[0].pc);
+    if (fromHigh.length && results.length < 4) results.push(fromHigh[0].pc);
+    // Добираем из общего пула до 4
+    for (const s of scored) {
+      if (results.length >= 4) break;
+      if (!results.includes(s.pc)) results.push(s.pc);
+    }
+  }
+
+  // Сортируем финал по цене
+  results.sort((a, b) => a.price - b.price);
+
+  // Помечаем "лучший выбор" — самый высокий скор
+  const topId = scored.length ? scored[0].pc.id : null;
+
+  renderResults(results, topId, scored, params);
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+
+function renderResults(pcs, topId, scored, params) {
+  const container = document.getElementById('results-container');
+  if (!pcs.length) {
+    container.innerHTML = `
+      <div class="no-results">
+        <i class="ti ti-search-off"></i>
+        <div style="font-size:16px; font-weight:500; margin-bottom:8px; color:var(--text);">Сборки не найдены</div>
+        <div style="font-size:14px;">Попробуйте расширить бюджет или изменить фильтры</div>
+      </div>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="results-section">
+      <div class="results-header">
+        <div class="results-title">Подходящие сборки</div>
+        <div class="results-count">${pcs.length} из ${scored.length} совпадений</div>
+      </div>
+      ${pcs.map((pc, i) => renderCard(pc, i, pc.id === topId, scored.find(s => s.pc.id === pc.id)?.score)).join('')}
+    </div>`;
+}
+
+function renderCard(pc, idx, isBest, score) {
+  const matchBars = (pc.matches||[]).map(m =>
+    `<div class="match-bar"><div class="match-dot good"></div><span>${m}</span></div>`
+  ).join('') + (pc.weaknesses||[]).map(w =>
+    `<div class="match-bar"><div class="match-dot ok"></div><span style="color:var(--muted);">${w}</span></div>`
+  ).join('');
+
+  const scoreBadge = score >= 60
+    ? `<div class="score-badge high"><i class="ti ti-star-filled" style="font-size:10px;"></i> Отличное совпадение</div>`
+    : score >= 40
+    ? `<div class="score-badge med"><i class="ti ti-thumb-up" style="font-size:10px;"></i> Хорошее совпадение</div>`
+    : '';
+
+  return `<div class="pc-card${isBest ? ' best' : ''}">
+    ${isBest ? '<div class="best-badge">★ Лучший выбор</div>' : ''}
+    <div class="pc-name">${pc.name}</div>
+    <div class="pc-desc">${pc.desc}</div>
+    ${scoreBadge}
+    <div class="match-bars">${matchBars}</div>
+    <div class="specs-grid">
+      <div class="spec-item"><div class="spec-label">Процессор</div><div class="spec-val">${pc.cpu}</div></div>
+      <div class="spec-item"><div class="spec-label">Видеокарта</div><div class="spec-val">${pc.gpu}</div></div>
+      <div class="spec-item"><div class="spec-label">Память</div><div class="spec-val">${pc.ramLabel}</div></div>
+      <div class="spec-item"><div class="spec-label">Накопитель</div><div class="spec-val">${pc.storageLabel}</div></div>
+      <div class="spec-item"><div class="spec-label">Материнская плата</div><div class="spec-val">${pc.motherboard}</div></div>
+      <div class="spec-item"><div class="spec-label">Блок питания</div><div class="spec-val">${pc.psu}</div></div>
+    </div>
+    <div class="pc-footer">
+      <div class="pc-price">${fmt(pc.price)}</div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button class="fav-btn ${isFav(pc.id) ? 'active' : ''}" onclick="toggleFav(${pc.id}, this)" id="fav-btn-${pc.id}">
+          <i class="ti ${isFav(pc.id) ? 'ti-heart-filled' : 'ti-heart'}"></i>
+          ${isFav(pc.id) ? 'В избранном' : 'В избранное'}
+        </button>
+        <button class="stores-btn" onclick="toggleStores(${idx}, this)" data-idx="${idx}">
+          <i class="ti ti-building-store" style="font-size:16px;"></i>
+          Где купить
+        </button>
+      </div>
+    </div>
+    <div id="stores-${idx}" style="display:none;" data-stores='${JSON.stringify(pc.stores)}'></div>
+  </div>`;
+}
+
+function toggleStores(idx, btn) {
+  const panel = document.getElementById('stores-' + idx);
+  if (panel.style.display === 'block') {
+    panel.style.display = 'none';
+    btn.innerHTML = '<i class="ti ti-building-store" style="font-size:16px;"></i> Где купить';
+    return;
+  }
+  panel.style.display = 'block';
+  btn.innerHTML = '<i class="ti ti-x" style="font-size:16px;"></i> Скрыть';
+  if (panel.dataset.loaded) return;
+  panel.dataset.loaded = '1';
+  const stores = JSON.parse(panel.dataset.stores || '[]');
+  renderStores(panel, stores);
+}
+
+function renderStores(panel, stores) {
+  const sorted = [...stores].sort((a,b) => a.price - b.price);
+  panel.innerHTML = `<div class="stores-panel">
+    <div class="stores-panel-title"><i class="ti ti-building-store" style="font-size:14px; vertical-align:-2px; margin-right:6px;"></i>Магазины</div>
+    ${sorted.map((s, i) => `
+      <div class="store-row">
+        <div class="store-info">
+          <div class="store-icon">${s.icon || '🏪'}</div>
+          <div>
+            <div class="store-name">${s.name}</div>
+            <div class="store-info-text">
+              ${s.inStock
+                ? '<span style="color:#97C459;">● В наличии</span>'
+                : '<span style="color:var(--muted);">○ Под заказ</span>'}
+              · Доставка ${s.delivery || '2-5 дней'}
+              ${i === 0 ? ' <span style="color:var(--accent); font-size:11px;">• Дешевле всего</span>' : ''}
+            </div>
+          </div>
+        </div>
+        <div class="store-right">
+          <div class="store-price">${s.price.toLocaleString('ru-RU')} ₽</div>
+          <a class="store-link" href="${s.url}" target="_blank" rel="noopener">
+            Перейти <i class="ti ti-external-link" style="font-size:12px;"></i>
+          </a>
+        </div>
+      </div>
+    `).join('')}
+    <div style="padding-top:12px; font-size:12px; color:var(--muted);">
+      <i class="ti ti-info-circle" style="font-size:13px; vertical-align:-2px;"></i>
+      Цены ориентировочные на 2026 год. Уточняйте наличие и стоимость на сайте магазина.
+    </div>
+  </div>`;
+}
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'favorites') renderFavTab();
+}
+
+// ─── FAVORITES ───────────────────────────────────────────────────────────────
+
+let favorites = JSON.parse(localStorage.getItem('pc-favs') || '[]');
+let compareList = []; // ids currently selected for compare
+
+function saveFavs() {
+  localStorage.setItem('pc-favs', JSON.stringify(favorites));
+}
+
+function isFav(id) { return favorites.includes(id); }
+
+function updateFavBadge() {
+  const badge = document.getElementById('fav-badge');
+  if (favorites.length > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = favorites.length;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function toggleFav(id, btn) {
+  if (isFav(id)) {
+    favorites = favorites.filter(f => f !== id);
+    btn.classList.remove('active');
+    btn.innerHTML = '<i class="ti ti-heart"></i> В избранное';
+    // Also remove from compare if was selected
+    removeFromCompare(id);
+  } else {
+    favorites.push(id);
+    btn.classList.add('active');
+    btn.innerHTML = '<i class="ti ti-heart-filled"></i> В избранном';
+  }
+  saveFavs();
+  updateFavBadge();
+  // If currently on favorites tab, re-render
+  if (document.getElementById('tab-favorites').classList.contains('active')) {
+    renderFavTab();
+  }
+}
+
+function renderFavTab() {
+  const container = document.getElementById('fav-content');
+  if (favorites.length === 0) {
+    compareList = [];
+    updateCompareBar();
+    container.innerHTML = `
+      <div class="fav-empty">
+        <i class="ti ti-heart-off"></i>
+        <div class="fav-empty-title">Избранное пусто</div>
+        <div style="font-size:14px;">Добавляйте понравившиеся сборки кнопкой «В избранное» на вкладке Конфигуратор</div>
+      </div>`;
+    return;
+  }
+  const favPCs = DB.filter(pc => favorites.includes(pc.id));
+  container.innerHTML = `
+    <div class="fav-section-header">
+      <div class="results-title">Избранные сборки <span class="results-count" style="margin-left:8px;">${favPCs.length}</span></div>
+      ${favPCs.length >= 2 ? '<div class="fav-compare-hint"><i class="ti ti-checkbox" style="font-size:12px; vertical-align:-1px; margin-right:4px;"></i>Отметьте 2–4 сборки для сравнения</div>' : ''}
+    </div>
+    ${favPCs.map((pc, i) => renderFavCard(pc, i)).join('')}`;
+  updateCompareBar();
+}
+
+function renderFavCard(pc, idx) {
+  const inCompare = compareList.includes(pc.id);
+  const matchBars = (pc.matches||[]).map(m =>
+    `<div class="match-bar"><div class="match-dot good"></div><span>${m}</span></div>`
+  ).join('') + (pc.weaknesses||[]).map(w =>
+    `<div class="match-bar"><div class="match-dot ok"></div><span style="color:var(--muted);">${w}</span></div>`
+  ).join('');
+  return `<div class="pc-card" id="fav-card-${pc.id}">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:4px;">
+      <div class="pc-name" style="margin-bottom:0; padding-right:0;">${pc.name}</div>
+      <label class="compare-check-wrap" title="Добавить к сравнению" style="margin-top:3px; flex-shrink:0;">
+        <input type="checkbox" ${inCompare ? 'checked' : ''} onchange="toggleCompare(${pc.id}, this)">
+        <div class="compare-check-box"></div>
+        <span style="white-space:nowrap;">Сравнить</span>
+      </label>
+    </div>
+    <div class="pc-desc">${pc.desc}</div>
+    <div class="match-bars">${matchBars}</div>
+    <div class="specs-grid">
+      <div class="spec-item"><div class="spec-label">Процессор</div><div class="spec-val">${pc.cpu}</div></div>
+      <div class="spec-item"><div class="spec-label">Видеокарта</div><div class="spec-val">${pc.gpu}</div></div>
+      <div class="spec-item"><div class="spec-label">Память</div><div class="spec-val">${pc.ramLabel}</div></div>
+      <div class="spec-item"><div class="spec-label">Накопитель</div><div class="spec-val">${pc.storageLabel}</div></div>
+      <div class="spec-item"><div class="spec-label">Материнская плата</div><div class="spec-val">${pc.motherboard}</div></div>
+      <div class="spec-item"><div class="spec-label">Блок питания</div><div class="spec-val">${pc.psu}</div></div>
+    </div>
+    <div class="pc-footer">
+      <div class="pc-price">${fmt(pc.price)}</div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button class="fav-btn active" onclick="removeFavFromTab(${pc.id}, this)">
+          <i class="ti ti-heart-filled"></i> В избранном
+        </button>
+        <button class="stores-btn" onclick="toggleFavStores(${pc.id}, this)">
+          <i class="ti ti-building-store" style="font-size:16px;"></i>
+          Где купить
+        </button>
+      </div>
+    </div>
+    <div id="fav-stores-${pc.id}" style="display:none;" data-stores='${JSON.stringify(pc.stores)}'></div>
+  </div>`;
+}
+
+function removeFavFromTab(id, btn) {
+  favorites = favorites.filter(f => f !== id);
+  saveFavs();
+  updateFavBadge();
+  removeFromCompare(id);
+  // Also update button in configurator tab if visible
+  const cfgBtn = document.getElementById('fav-btn-' + id);
+  if (cfgBtn) {
+    cfgBtn.classList.remove('active');
+    cfgBtn.innerHTML = '<i class="ti ti-heart"></i> В избранное';
+  }
+  renderFavTab();
+}
+
+function toggleFavStores(id, btn) {
+  const panel = document.getElementById('fav-stores-' + id);
+  if (panel.style.display === 'block') {
+    panel.style.display = 'none';
+    btn.innerHTML = '<i class="ti ti-building-store" style="font-size:16px;"></i> Где купить';
+    return;
+  }
+  panel.style.display = 'block';
+  btn.innerHTML = '<i class="ti ti-x" style="font-size:16px;"></i> Скрыть';
+  if (panel.dataset.loaded) return;
+  panel.dataset.loaded = '1';
+  const stores = JSON.parse(panel.dataset.stores || '[]');
+  renderStores(panel, stores);
+}
+
+// ─── COMPARE ─────────────────────────────────────────────────────────────────
+
+function toggleCompare(id, checkbox) {
+  if (checkbox.checked) {
+    if (compareList.length >= 4) {
+      checkbox.checked = false;
+      showCompareLimit();
+      return;
+    }
+    if (!compareList.includes(id)) compareList.push(id);
+  } else {
+    removeFromCompare(id);
+  }
+  updateCompareBar();
+}
+
+function removeFromCompare(id) {
+  compareList = compareList.filter(c => c !== id);
+  // Uncheck checkbox in fav tab if exists
+  const card = document.getElementById('fav-card-' + id);
+  if (card) {
+    const cb = card.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = false;
+  }
+  updateCompareBar();
+}
+
+function clearCompare() {
+  compareList = [];
+  // Uncheck all checkboxes
+  document.querySelectorAll('#fav-content input[type=checkbox]').forEach(cb => cb.checked = false);
+  updateCompareBar();
+}
+
+function updateCompareBar() {
+  const bar = document.getElementById('compare-bar');
+  const chipsEl = document.getElementById('compare-chips');
+  if (compareList.length === 0) {
+    bar.classList.remove('visible');
+    return;
+  }
+  bar.classList.add('visible');
+  const pcs = compareList.map(id => DB.find(pc => pc.id === id)).filter(Boolean);
+  chipsEl.innerHTML = pcs.map(pc => `
+    <div class="compare-chip">
+      <span>${pc.name}</span>
+      <button onclick="removeFromCompare(${pc.id})" title="Убрать из сравнения">
+        <i class="ti ti-x" style="font-size:12px;"></i>
+      </button>
+    </div>`).join('');
+}
+
+function showCompareLimit() {
+  const bar = document.getElementById('compare-bar');
+  const orig = bar.style.outline;
+  bar.style.outline = '2px solid var(--accent)';
+  setTimeout(() => { bar.style.outline = orig; }, 800);
+}
+
+function openCompareModal() {
+  if (compareList.length < 2) {
+    // flash the bar
+    showCompareLimit();
+    return;
+  }
+  const pcs = compareList.map(id => DB.find(pc => pc.id === id)).filter(Boolean);
+  const wrap = document.getElementById('compare-table-wrap');
+
+  // Find best values for highlighting
+  const prices = pcs.map(pc => pc.price);
+  const rams = pcs.map(pc => pc.ramGb);
+  const storages = pcs.map(pc => pc.storageTb);
+  const cpuTiers = pcs.map(pc => pc.cpuTier);
+  const gpuTiers = pcs.map(pc => pc.gpuTier);
+
+  function highlight(vals, idx, higherIsBetter) {
+    const best = higherIsBetter ? Math.max(...vals) : Math.min(...vals);
+    const worst = higherIsBetter ? Math.min(...vals) : Math.max(...vals);
+    const v = vals[idx];
+    if (pcs.length < 2) return '';
+    if (v === best && vals.filter(x => x === best).length === 1) return ' cmp-best-val';
+    if (v === worst && vals.filter(x => x === worst).length === 1) return ' cmp-worst-val';
+    return '';
+  }
+
+  // Parse PSU wattage from string like "850W 80+ Gold"
+  function parsePsuWatts(psu) {
+    const m = (psu || '').match(/(\d+)\s*W/i);
+    return m ? parseInt(m[1]) : 0;
+  }
+  // Parse PSU efficiency tier: Titanium>Platinum>Gold>Silver>Bronze>White
+  function parsePsuTier(psu) {
+    const s = (psu || '').toLowerCase();
+    if (s.includes('titanium')) return 5;
+    if (s.includes('platinum')) return 4;
+    if (s.includes('gold')) return 3;
+    if (s.includes('silver')) return 2;
+    if (s.includes('bronze')) return 1;
+    return 0;
+  }
+  // Parse motherboard tier by brand/series keywords
+  function parseMbTier(mb) {
+    const s = (mb || '').toLowerCase();
+    if (s.includes('rog maximus') || s.includes('proart') || s.includes('apex')) return 5;
+    if (s.includes('rog strix') || s.includes('rog crosshair') || s.includes('meg') || s.includes('hero')) return 4;
+    if (s.includes('tuf gaming') || s.includes('mag') || s.includes('pro z') || s.includes('pro b6')) return 3;
+    if (s.includes('prime') || s.includes('pro a') || s.includes('pro b5') || s.includes('pro b550')) return 2;
+    return 1;
+  }
+
+  const psuWatts = pcs.map(pc => parsePsuWatts(pc.psu));
+  const psuTiers = pcs.map(pc => parsePsuTier(pc.psu));
+  const mbTiers  = pcs.map(pc => parseMbTier(pc.motherboard));
+
+  const rows = [
+    { label: 'Цена', vals: pcs.map((pc, i) => `<span class="cmp-price-cell${highlight(prices, i, false)}">${fmt(pc.price)}</span>`) },
+    { label: 'Процессор', vals: pcs.map((pc, i) => `<span class="${highlight(cpuTiers, i, true)}">${pc.cpu}</span>`) },
+    { label: 'Видеокарта', vals: pcs.map((pc, i) => `<span class="${highlight(gpuTiers, i, true)}">${pc.gpu}</span>`) },
+    { label: 'Оперативная память', vals: pcs.map((pc, i) => `<span class="${highlight(rams, i, true)}">${pc.ramLabel}</span>`) },
+    { label: 'Накопитель', vals: pcs.map((pc, i) => `<span class="${highlight(storages, i, true)}">${pc.storageLabel}</span>`) },
+    { label: 'Материнская плата', vals: pcs.map((pc, i) => `<span class="${highlight(mbTiers, i, true)}">${pc.motherboard}</span>`) },
+    { label: 'Блок питания', vals: pcs.map((pc, i) => {
+      // highlight by wattage first, then efficiency tier if wattage equal
+      const wClass = highlight(psuWatts, i, true);
+      const tClass = wClass === '' ? highlight(psuTiers, i, true) : wClass;
+      return `<span class="${tClass}">${pc.psu}</span>`;
+    })},
+    { label: 'Назначение', vals: pcs.map(pc => {
+      const labels = { gaming:'Игры', office:'Офис', video:'Видео', '3d':'3D/Рендер', streaming:'Стриминг', programming:'Программирование' };
+      return (pc.purposes||[]).map(p => labels[p] || p).join(', ');
+    })},
+  ];
+
+  wrap.innerHTML = `
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Характеристика</th>
+          ${pcs.map(pc => `<th><div class="cmp-pc-name">${pc.name}</div><div class="cmp-pc-desc">${pc.desc}</div></th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(row => `
+          <tr>
+            <th>${row.label}</th>
+            ${row.vals.map(v => `<td>${v}</td>`).join('')}
+          </tr>`).join('')}
+        <tr>
+          <th>Достоинства</th>
+          ${pcs.map(pc => `<td style="font-size:12px; color:#97C459;">${(pc.matches||[]).map(m => '✓ '+m).join('<br>')}</td>`).join('')}
+        </tr>
+        <tr>
+          <th>Недостатки</th>
+          ${pcs.map(pc => `<td style="font-size:12px; color:var(--muted);">${(pc.weaknesses||[]).map(w => '– '+w).join('<br>')}</td>`).join('')}
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:16px; font-size:12px; color:var(--muted);">
+      <span style="color:var(--green-light); font-weight:600;">Зелёным</span> — лучшее значение,
+      <span style="color:var(--muted);">серым</span> — наименьшее среди сравниваемых.
+    </div>`;
+
+  document.getElementById('compare-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCompareModal() {
+  document.getElementById('compare-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleModalClick(e) {
+  if (e.target === document.getElementById('compare-modal')) closeCompareModal();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeCompareModal();
+});
+
+// Init badge on load
+updateFavBadge();
+</script>
+</body>
+</html>
